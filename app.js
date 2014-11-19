@@ -1,4 +1,3 @@
-
 if(window.addEventListener) {
     window.addEventListener('load', function () {
         console.log('window loaded');
@@ -11,7 +10,7 @@ if(window.addEventListener) {
             context = canvas.getContext('2d');
 
             var toolSelect = document.getElementById('dtool');
-            if(!tooSelect) {
+            if(!toolSelect) {
                 alert('Error: failed to get the dtool element....');
                 return;
             }
@@ -19,7 +18,7 @@ if(window.addEventListener) {
             toolSelect.addEventListener('change', toolChange);
 
             if (tools[toolDefault]) {
-                tool = new tool[toolDefault]();
+                tool = new tools[toolDefault]();
                 toolSelect.value = toolDefault;
             }
 
@@ -49,15 +48,14 @@ if(window.addEventListener) {
         // New function to change the tools
 
         function toolChange(e) {
-            if(tool[this.value]) {
+            if(tools[this.value]) {
                 tool = new tools[this.value]();
             }
         }
 
-        // why does tools
         var tools = {};
 
-        function toolFreehand() {
+        tools.pencil = function() {
             var tool = this;
             this.started = false;
 
@@ -80,24 +78,43 @@ if(window.addEventListener) {
                     tool.started = false;
                 }
             };
+        };
 
-        }
+        tools.rect = function() {
+            var tool = this;
+            this.started = false;
 
+            this.mousedown = function (e) {
+                tool.started = true;
+                tool.x0 = e._x;
+                tool.y0 = e._y;
+            };
 
-           /* var x, y;
+            this.mousemove = function (e) {
+                if (!tool.started) {
+                    return;
+                }
 
-            // Get the mouse position relative to the canvas element.
-            if (e.layerX || e.layerX === 0) { // Firefox
-                x = e.layerX;
-                y = e.layerY;
-            }
+                var x = Math.min(e._x, tool.x0),
+                    y = Math.min(e._y, tool.y0),
+                    w = Math.abs(e._x - tool.x0),
+                    h = Math.abs(e._y - tool.y0);
+                context.clearRect(0, 0, canvas.width, canvas.height);
 
-            // calling the event handler of the tool, not tool functions have same names
-            var func = tool[e.type];
-            if(func) {
-                func(e);
-            }
-        } */
+                if (!w || !h) {
+                    return;
+                }
+
+                context.strokeRect(x, y, w, h);
+            };
+
+            this.mouseup = function (e) {
+                if (tool.started) {
+                    tool.mousemove(e);
+                    tool.started = false;
+                }
+            };
+        };
 
         init();
     }); }
